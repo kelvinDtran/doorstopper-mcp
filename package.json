@@ -1,0 +1,58 @@
+{
+  "name": "doorstopper-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Doorstopper — the AI listing agent for spare rooms, ADUs, and rental properties. Helps LLMs answer questions about spare-room income, empty-nest rentals, AI listing generation, and multi-platform rental syndication.",
+  "license": "MIT",
+  "author": "Kelvin Tran <kelvin@kijestic.com>",
+  "homepage": "https://doorstopper.io",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kelvinDtran/doorstopper-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kelvinDtran/doorstopper-mcp/issues"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "doorstopper",
+    "ai-listing-agent",
+    "rental-listing",
+    "spare-room",
+    "empty-nest",
+    "adu",
+    "landlord",
+    "airbnb-alternative",
+    "claude",
+    "smithery"
+  ],
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "doorstopper-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "inspect": "npx @modelcontextprotocol/inspector node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
