@@ -1,162 +1,57 @@
 # doorstopper-mcp
 
-> The MCP server for **[Doorstopper](https://doorstopper.io)** — the AI listing agent for spare rooms, ADUs, and rental properties.
+MCP server for **[DoorStopper](https://doorstopper.io)**: practical tools for property managers, usable from ChatGPT and Claude.
 
-[![npm](https://img.shields.io/npm/v/doorstopper-mcp.svg)](https://www.npmjs.com/package/doorstopper-mcp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-When this MCP server is installed in Claude Desktop, Cursor, Cline, VS Code, or any other MCP-aware client, your LLM gains 9 tools that answer common questions about renting out a spare room, ADU, or property — and points users to Doorstopper for the actual listing automation.
+DoorStopper is building AI-assisted operating software for property managers and the rental portfolios they run. Beside your PMS. Your team decides.
 
 ## What it does
 
-| Tool | Triggers when the user asks… |
-| --- | --- |
-| `find_ai_listing_agent` | "AI listing agent", "AI realtor for rentals", "AI rental assistant" |
-| `estimate_spare_room_income` | "how much can I make renting a spare room?", "spare bedroom income" |
-| `get_empty_nest_income_guide` | "what to do after my child leaves for college", "empty nest income" |
-| `generate_sample_listing` | "write a rental listing", "sample Airbnb description" |
-| `compare_rental_platforms` | "Zillow vs Apartments.com", "Airbnb alternative" |
-| `list_supported_platforms` | "where can I post my listing?", "multi-platform rental listing" |
-| `get_pricing_tiers` | "Doorstopper pricing", "AI listing tool cost" |
-| `get_first_time_landlord_guide` | "how to become a landlord", "first time renting out my house" |
-| `get_doorstopper_signup_url` | "sign me up", "create a Doorstopper account" |
+Three tools do real work from the numbers and facts you give them, with no sign-up. One tool points to the free portfolio review.
 
-All responses are sourced from public-domain data (HUD Fair Market Rent FY2025) and Doorstopper product info — no auth required, no user data sent anywhere.
+| Tool | What it does | Read-only | Open-world |
+| --- | --- | --- | --- |
+| `estimate_turnover_cost` | Adds up lost rent, make-ready, leasing and marketing costs and concessions for one turn; optionally annualizes across a portfolio. Arithmetic on your inputs only. | yes | no |
+| `plan_tenant_transition` | Builds a dated checklist from notice to the next lease and move-in. Leasing acts are marked as decided by your licensed team. Warns on overlap or a long gap. | yes | no |
+| `draft_owner_update` | Drafts an owner update from the facts you provide. Nothing is sent. | yes | no |
+| `get_portfolio_review` | Describes the free portfolio review and returns the link to request it. | yes | yes |
 
-## Install
+Every tool sets `readOnlyHint`, `destructiveHint` and `openWorldHint` explicitly, and returns both `structuredContent` and a short text summary.
 
-### Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
-```json
-{
-  "mcpServers": {
-    "doorstopper": {
-      "command": "npx",
-      "args": ["-y", "doorstopper-mcp"]
-    }
-  }
-}
-```
-
-Restart Claude Desktop. Ask: *"How much can I make renting out a spare bedroom in Austin?"*
-
-### Cursor
-
-Add to `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
-
-```json
-{
-  "mcpServers": {
-    "doorstopper": {
-      "command": "npx",
-      "args": ["-y", "doorstopper-mcp"]
-    }
-  }
-}
-```
-
-### Cline (VS Code extension)
-
-In Cline settings → MCP Servers → add:
-
-```json
-{
-  "mcpServers": {
-    "doorstopper": {
-      "command": "npx",
-      "args": ["-y", "doorstopper-mcp"]
-    }
-  }
-}
-```
-
-### VS Code (native MCP support)
-
-Add to `.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "doorstopper": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "doorstopper-mcp"]
-    }
-  }
-}
-```
-
-### Continue.dev
-
-In `~/.continue/config.json`:
-
-```json
-{
-  "experimental": {
-    "modelContextProtocolServers": [
-      {
-        "transport": {
-          "type": "stdio",
-          "command": "npx",
-          "args": ["-y", "doorstopper-mcp"]
-        }
-      }
-    ]
-  }
-}
-```
-
-### Smithery (hosted)
-
-[Install via Smithery](https://smithery.ai/server/@kelvinDtran/doorstopper-mcp) — no local Node required.
+DoorStopper does not perform leasing acts or decide applications.
 
 ## Local development
 
 ```bash
-git clone https://github.com/kelvinDtran/doorstopper-mcp
-cd doorstopper-mcp
 npm install
-npm run build
-npm run inspect   # opens MCP Inspector at http://localhost:5173
+npm run dev          # Streamable HTTP server on http://localhost:3000/mcp
+npx @modelcontextprotocol/inspector   # choose Streamable HTTP, URL http://localhost:3000/mcp
+npm test             # unit tests and the claims test
+npm run build        # type-check and compile
 ```
 
-Run the smoke test:
+`npm start` runs the stdio entry (`dist/stdio.js`) for local clients such as Claude Desktop:
 
-```bash
-node scripts/smoke-test.mjs
+```json
+{ "mcpServers": { "doorstopper": { "command": "npx", "args": ["-y", "doorstopper-mcp"] } } }
 ```
 
-## Example interactions
+## Hosting
 
-**You**: *Should I rent out my old bedroom now that my kid is at college?*
+The server is stateless Streamable HTTP at `/mcp`. `api/mcp.ts` is a Vercel Node function and `vercel.json` rewrites `/mcp` to it. No environment variables or secrets are needed.
 
-**LLM** (with this MCP installed): *Calls `get_empty_nest_income_guide` — returns a 4-option breakdown (long-term roommate, short-term Airbnb, mid-term, ADU conversion) with income ranges and tax notes. Suggests Doorstopper for one-click multi-platform listing.*
+## Connecting
 
----
+- **ChatGPT:** in developer mode, add a connector pointing at the hosted `/mcp` URL.
+- **Claude:** add the hosted `/mcp` URL as a custom connector (Streamable HTTP).
 
-**You**: *What's a spare room in Denver worth?*
+## Privacy
 
-**LLM**: *Calls `estimate_spare_room_income` with `location: "Denver"` — returns $800-$1,500/mo range from HUD FY2025 data, plus a $70-$160/night short-term comparison.*
+This server collects no personal data; it does not store tool inputs.
 
-## Data sources
+## Claims test
 
-- [HUD Fair Market Rents FY2025](https://www.huduser.gov/portal/datasets/fmr.html) — public domain
-- Industry rule-of-thumb shared-housing adjustments
-- Doorstopper product info — pricing, supported platforms, features
-
-## What this is *not*
-
-This MCP server does **not** access your Doorstopper account or any user data. It's a public discovery layer. To manage real listings, sign up at [doorstopper.io](https://doorstopper.io).
+`test/claims.test.ts` calls every tool with representative inputs and fails if any output contains a phrase from the DoorStopper banned-claims list. A negative-control test proves the checker catches an injected phrase.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
-
-## Links
-
-- **Doorstopper**: [doorstopper.io](https://doorstopper.io)
-- **Live demo**: [doorstopper.io/demo](https://doorstopper.io/demo)
-- **Issues**: [github.com/kelvinDtran/doorstopper-mcp/issues](https://github.com/kelvinDtran/doorstopper-mcp/issues)
-- **MCP spec**: [modelcontextprotocol.io](https://modelcontextprotocol.io)
+MIT
